@@ -49,7 +49,7 @@
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TableView>
-            <Button fx:id="startMonitoringButton" mnemonicParsing="false" onAction="#startMonitoring" text="Start" />
+            <Button fx:id="startLogGenButton" mnemonicParsing="false" onAction="#startLogGen" text="Start" />
          </children>
       </VBox>
       <Separator orientation="VERTICAL" prefHeight="200.0" />

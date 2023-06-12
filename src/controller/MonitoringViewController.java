@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +66,7 @@ public class MonitoringViewController {
 	@FXML
 	private TableColumn<AbstractModel, AbstractModel> modelRemoveColumn;
 	@FXML
-	private Button startMonitoringButton;
+	private Button startLogGenButton;
 	@FXML
 	private ListView<String> tracesListView;
 	@FXML
@@ -88,8 +91,8 @@ public class MonitoringViewController {
 
 	private XLog xlog;
 	
-	String outputFile = "C:/UT_Devel/Repos/repos-2020-06/model-interplay-monitoring-code/input/core_algorithms_2022/logGen/gen_eventlog_modelCount.xes";
-	
+	//String outputFile = "C:/UT_Devel/Repos/repos-2020-06/model-interplay-monitoring-code/input/core_algorithms_2022/logGen/gen_eventlog_modelCount.xes";
+	String outputFile = "output/test.xes";
 	
 	
 	String logHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + 
@@ -111,6 +114,7 @@ public class MonitoringViewController {
 			"	<global scope=\"event\">\r\n" + 
 			"		<string key=\"concept:name\" value=\"__INVALID__\"/>\r\n" + 
 			"	</global>\r\n" + 
+			"	<classifier name=\"Event Name\" keys=\"concept:name\"/>\r\n" + 
 			"	<string key=\"concept:name\" value=\"Artificial Log\"/>\r\n" + 
 			"	<string key=\"lifecycle:model\" value=\"standard\"/>\r\n" + 
 			"	<string key=\"source\" value=\"custom_loggen\"/>\r\n";
@@ -217,7 +221,7 @@ public class MonitoringViewController {
 	}
 
 	@FXML
-	private void startMonitoring() {
+	private void startLogGen() {
 		settingsPanel.setDisable(true);
 		
 		long startTime = System.nanoTime();
@@ -227,11 +231,21 @@ public class MonitoringViewController {
 		tracesListView.getItems().clear();
 		resultsList = new ArrayList<VBox>();
 
-		//monitorNextTrace();
 		generateEventLog();
 		
 		System.out.println("Done!");
 	}
+	
+	public static LocalDate createRandomDate(int startYear, int endYear) {
+        int day = createRandomIntBetween(1, 28);
+        int month = createRandomIntBetween(1, 12);
+        int year = createRandomIntBetween(startYear, endYear);
+        return LocalDate.of(year, month, day);
+    }
+	
+	public static int createRandomIntBetween(int start, int end) {
+        return start + (int) Math.round(Math.random() * (end - start));
+    }
 	
 	private void generateEventLog() {
 		int positiveTraces = 100;
@@ -245,6 +259,7 @@ public class MonitoringViewController {
 		}
 		
 		for (int i = 0; i < positiveTraces; i++) {
+			
 			generatePositiveTrace(i);
 		}
 		
@@ -257,9 +272,14 @@ public class MonitoringViewController {
 		} catch (IOException e) {
 			System.err.println("Unable to write to event log file");
 		}
+		
+		settingsPanel.setDisable(false);
 	}
 
 	private void generatePositiveTrace(int id) {
+		
+		LocalDate startDate = createRandomDate(Year.now().getValue()-5, Year.now().getValue()-1);
+		Timestamp eventTimestamp = Timestamp.valueOf(startDate.atStartOfDay());
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
 			writer.write(traceStart.replace("Case No. 01", "Positive No. " + id));
@@ -281,7 +301,11 @@ public class MonitoringViewController {
 			}
 			
 			Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
-			writeTransition(selectedTransition);
+			
+			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
+			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
+			
+			writeTransition(selectedTransition, eventTimestamp);
 			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
 		}
 		
@@ -293,6 +317,9 @@ public class MonitoringViewController {
 	}
 
 	private void generateNegativeTrace(int id) {
+		
+		LocalDate startDate = createRandomDate(Year.now().getValue()-5, Year.now().getValue()-1);
+		Timestamp eventTimestamp = Timestamp.valueOf(startDate.atStartOfDay());
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
 			writer.write(traceStart.replace("Case No. 01", "Negative No. " + id));
@@ -326,7 +353,11 @@ public class MonitoringViewController {
 			}
 			
 			Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
-			writeTransition(selectedTransition);
+			
+			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
+			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
+			
+			writeTransition(selectedTransition, eventTimestamp);
 			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
 		}
 		
@@ -352,7 +383,7 @@ public class MonitoringViewController {
 		
 	}
 	
-	private void writeTransition(Transition selectedTransition) {
+	private void writeTransition(Transition selectedTransition, Timestamp eventTimestamp) {
 		String activityString = propositionData.propositionToActivityString(selectedTransition.getPositiveLabel(), true);
 		
 		String activityName;
@@ -378,11 +409,16 @@ public class MonitoringViewController {
 				writer.write(attributeEnd);
 			}
 			
+			writer.write("			<date key=\"time:timestamp\" value=\""+ String.format("%1$TFT%1$TT", eventTimestamp) + "\"/>\r\n");
+			
 			writer.write(eventEnd);
 		} catch (IOException e) {
 			System.err.println("Unable to write to event log file");
 		}
 	}
+	
+	
+	
 	
 	private void monitorNextTrace() {
 		if (resultsList.size() < xlog.size()) {
