@@ -1,0 +1,7 @@
+activity CXray
+activity SD
+bind CXray: i
+i: true, false
+bind SD: s
+s: true, false
+Not Co-Existence[CXray, SD] |A.i is true |T.s is true |
