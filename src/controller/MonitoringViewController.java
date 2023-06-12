@@ -84,14 +84,14 @@ public class MonitoringViewController {
 	Map<State, Integer> costBestMap;
 	
 	//statistics
-	long monitoringAutomatonTime;
+	long automatonCreationTime;
+	long logGenTime;
 	List<Long> eventProcessingTimes = new ArrayList<Long>();
 
 	List<VBox> resultsList;
 
 	private XLog xlog;
 	
-	//String outputFile = "C:/UT_Devel/Repos/repos-2020-06/model-interplay-monitoring-code/input/core_algorithms_2022/logGen/gen_eventlog_modelCount.xes";
 	String outputFile = "output/test.xes";
 	
 	
@@ -225,13 +225,36 @@ public class MonitoringViewController {
 		settingsPanel.setDisable(true);
 		
 		long startTime = System.nanoTime();
-		createMonitoringDataStructures();
-		monitoringAutomatonTime = System.nanoTime() - startTime;
+		createLogGenDataStructures();
+		automatonCreationTime = System.nanoTime() - startTime;
+		System.out.println("Automaton creation time (ms): " + TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS));
 
 		tracesListView.getItems().clear();
 		resultsList = new ArrayList<VBox>();
 
-		generateEventLog();
+		System.out.println("Log generation n=100");
+		startTime = System.nanoTime();
+		generateEventLog(50,50);
+		logGenTime = System.nanoTime() - startTime;
+		System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
+		System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
+		System.out.println();
+		
+		System.out.println("Log generation n=1000");
+		startTime = System.nanoTime();
+		generateEventLog(500,500);
+		logGenTime = System.nanoTime() - startTime;
+		System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
+		System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
+		System.out.println();
+		
+		System.out.println("Log generation n=10000");
+		startTime = System.nanoTime();
+		generateEventLog(5000,5000);
+		logGenTime = System.nanoTime() - startTime;
+		System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
+		System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
+		System.out.println();
 		
 		System.out.println("Done!");
 	}
@@ -247,10 +270,7 @@ public class MonitoringViewController {
         return start + (int) Math.round(Math.random() * (end - start));
     }
 	
-	private void generateEventLog() {
-		int positiveTraces = 100;
-		int negativeTraces = 100;
-		
+	private void generateEventLog(int positiveTraces, int negativeTraces) {
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile))) {
 			writer.write(logHeader);
@@ -444,7 +464,7 @@ public class MonitoringViewController {
 			System.out.println("===========================================");
 			System.out.println("Statistics");
 			System.out.println("===========================================");
-			System.out.println("Monitoring automaton creation time (ms): " + TimeUnit.MILLISECONDS.convert(monitoringAutomatonTime, TimeUnit.NANOSECONDS));
+			System.out.println("Monitoring automaton creation time (ms): " + TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS));
 			System.out.println("Monitoring automaton number of states: " + globalAutomaton.stateCount());
 			//System.out.println("Monitoring automaton memory consumption (MB): " + "TODO");
 			System.out.println("Event processing time (min): " + TimeUnit.MILLISECONDS.convert(Collections.min(eventProcessingTimes), TimeUnit.NANOSECONDS));
@@ -459,14 +479,16 @@ public class MonitoringViewController {
 		}
 	}
 
-	private void createMonitoringDataStructures() {
+	private void createLogGenDataStructures() {
 		//TODO: Avoid code duplication (following code is duplicated in MainCmd.java)
+		
+		long startTime = System.nanoTime();
 		System.out.println("Start: Populating propositionalization data structure");
 		for (AbstractModel processModel : modelTableView.getItems()) {
 			propositionData.addActivities(processModel);
 			propositionData.addAttributePropositions(processModel);
 		}
-		System.out.println("Done: Populating propositionalization data structure\n");
+		System.out.println("Done: Populating propositionalization data structure - " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS) + "(ms) \n");
 
 
 		//Creating a propositionalized automaton of each input model
