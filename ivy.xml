@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
-    <info organisation="" module="model_interplay_Monitor" revision="latest">
+    <info organisation="" module="model_interplay_LogGen" revision="latest">
     </info>
     <configurations>
    		<conf name="default" extends="lib" />
