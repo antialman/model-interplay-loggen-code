@@ -47,6 +47,7 @@ import proposition.PropositionData;
 import task.MonitoringTask;
 import utils.AutomatonUtils;
 import utils.FileUtils;
+import utils.LogUtils;
 import utils.ModelUtils;
 import utils.enums.MonitoringState;
 
@@ -310,6 +311,9 @@ public class LogGenViewController {
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
 			writer.write(logEnd);
+			writer.flush();
+			xlog = LogUtils.convertToXlog(outputFile);
+			replayNextTrace();
 		} catch (IOException e) {
 			System.err.println("Unable to write to event log file");
 		}
@@ -461,20 +465,20 @@ public class LogGenViewController {
 	
 	
 	
-	private void monitorNextTrace() {
+	private void replayNextTrace() {
 		if (resultsList.size() < xlog.size()) {
 			MonitoringTask monitoringTask = new MonitoringTask(xlog.get(resultsList.size()), modelTableView.getItems(), propositionData, globalAutomaton, globalAutomatonColours, costCurrMap, costBestMap, eventProcessingTimes);
 
 			monitoringTask.setOnSucceeded(event -> {
 				resultsList.add(monitoringTask.getValue());
 				tracesListView.getItems().add(XConceptExtension.instance().extractName(xlog.get(resultsList.size()-1)));
-				monitorNextTrace();
+				replayNextTrace();
 			});
 
 			monitoringTask.setOnFailed(event -> {
 				resultsList.add(new VBox(new Label("Error getting trace results")));
 				tracesListView.getItems().add(XConceptExtension.instance().extractName(xlog.get(resultsList.size()-1)));
-				monitorNextTrace();
+				replayNextTrace();
 			});
 			executorService.execute(monitoringTask);
 
@@ -483,10 +487,10 @@ public class LogGenViewController {
 			
 			System.out.println("\n\n\n");
 			System.out.println("===========================================");
-			System.out.println("Statistics");
+			System.out.println("Replay Statistics");
 			System.out.println("===========================================");
-			System.out.println("Monitoring automaton creation time (ms): " + TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS));
-			System.out.println("Monitoring automaton number of states: " + globalAutomaton.stateCount());
+			//System.out.println("Monitoring automaton creation time (ms): " + TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS));
+			//System.out.println("Monitoring automaton number of states: " + globalAutomaton.stateCount());
 			//System.out.println("Monitoring automaton memory consumption (MB): " + "TODO");
 			System.out.println("Event processing time (min): " + TimeUnit.MILLISECONDS.convert(Collections.min(eventProcessingTimes), TimeUnit.NANOSECONDS));
 			System.out.println("Event processing time (max): " + TimeUnit.MILLISECONDS.convert(Collections.max(eventProcessingTimes), TimeUnit.NANOSECONDS));
