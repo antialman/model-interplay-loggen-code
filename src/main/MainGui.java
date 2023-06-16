@@ -27,7 +27,7 @@ public class MainGui extends Application {
 		scene = new Scene(parent);
 		scene.getStylesheets().add("css/main.css");
 		
-		primaryStage.setTitle("model-interplay-monitor");
+		primaryStage.setTitle("model-interplay-logGen");
 		primaryStage.setScene(scene);
 		//Setting minimum window size to 800*600px
 		primaryStage.setMinWidth(800);
