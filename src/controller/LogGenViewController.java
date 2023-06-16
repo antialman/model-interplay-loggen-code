@@ -33,10 +33,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -45,16 +47,21 @@ import proposition.PropositionData;
 import task.MonitoringTask;
 import utils.AutomatonUtils;
 import utils.FileUtils;
-import utils.LogUtils;
 import utils.ModelUtils;
 import utils.enums.MonitoringState;
 
-public class MonitoringViewController {
+public class LogGenViewController {
 
 	@FXML
 	private VBox settingsPanel;
 	@FXML
 	private Label eventLogLabel;
+	@FXML
+	private Spinner<Integer> numberOfPosTracesSpinner;
+	@FXML
+	private Spinner<Integer> numberOfNegTracesSpinner;
+	@FXML
+	private Spinner<Integer> violProbabilitySpinner;
 	@FXML
 	private TableView<AbstractModel> modelTableView;
 	@FXML
@@ -92,7 +99,7 @@ public class MonitoringViewController {
 
 	private XLog xlog;
 	
-	String outputFile = "output/test.xes";
+	String outputFile;
 	
 	
 	String logHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n" + 
@@ -146,7 +153,11 @@ public class MonitoringViewController {
 
 	@FXML
 	private void initialize() {
-		modelTableView.setPlaceholder(new Label("No process specifications selected"));
+		numberOfPosTracesSpinner.setValueFactory(new IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 100, 1));	// Causes NPE on empty input
+		numberOfNegTracesSpinner.setValueFactory(new IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 100, 1));	// Causes NPE on empty input
+		violProbabilitySpinner.setValueFactory(new IntegerSpinnerValueFactory(0, 100, 5, 1));	// Causes NPE on empty input
+		
+		modelTableView.setPlaceholder(new Label("No input models selected"));
 		modelNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
 		modelNameColumn.setCellValueFactory(data -> new ReadOnlyStringWrapper(data.getValue().getModelName()));
 		modelTypeColumn.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -185,11 +196,11 @@ public class MonitoringViewController {
 	}
 
 	@FXML
-	private void selectLog() {
-		File logFile = FileUtils.showLogOpenDialog(stage);
+	private void selectOutputLog() {
+		File logFile = FileUtils.showLogOutputDialog(stage);
 		if (logFile != null) {
+			outputFile = logFile.getAbsolutePath();
 			eventLogLabel.setText(logFile.getAbsolutePath());
-			xlog = LogUtils.convertToXlog(logFile.getAbsolutePath());
 		}
 	}
 
@@ -231,32 +242,42 @@ public class MonitoringViewController {
 
 		tracesListView.getItems().clear();
 		resultsList = new ArrayList<VBox>();
-
-		System.out.println("Log generation n=100");
+		
+		int numberOfPosTraces = numberOfPosTracesSpinner.getValue();
+		int numberOfNegTraces = numberOfNegTracesSpinner.getValue();
+		int violProbability = violProbabilitySpinner.getValue();
+		
+		System.out.println("Log generation start - " + "pos=" + numberOfPosTraces + " neg=" + numberOfNegTraces + " violProb=" + violProbability);
 		startTime = System.nanoTime();
-		generateEventLog(50,50);
+		generateEventLog(numberOfPosTraces, numberOfNegTraces, violProbability);
 		logGenTime = System.nanoTime() - startTime;
 		System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
-		System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
-		System.out.println();
-		
-		System.out.println("Log generation n=1000");
-		startTime = System.nanoTime();
-		generateEventLog(500,500);
-		logGenTime = System.nanoTime() - startTime;
-		System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
-		System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
-		System.out.println();
-		
-		System.out.println("Log generation n=10000");
-		startTime = System.nanoTime();
-		generateEventLog(5000,5000);
-		logGenTime = System.nanoTime() - startTime;
-		System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
-		System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
-		System.out.println();
-		
 		System.out.println("Done!");
+		
+
+		//System.out.println("Log generation n=100");
+		//startTime = System.nanoTime();
+		//generateEventLog(50,50);
+		//logGenTime = System.nanoTime() - startTime;
+		//System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
+		//System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
+		//System.out.println();
+		
+		//System.out.println("Log generation n=1000");
+		//startTime = System.nanoTime();
+		//generateEventLog(500,500);
+		//logGenTime = System.nanoTime() - startTime;
+		//System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
+		//System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
+		//System.out.println();
+		
+		//System.out.println("Log generation n=10000");
+		//startTime = System.nanoTime();
+		//generateEventLog(5000,5000);
+		//logGenTime = System.nanoTime() - startTime;
+		//System.out.println("Log Generation time (ms)    : " + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS));
+		//System.out.println("Total time (ms)    : " + (TimeUnit.MILLISECONDS.convert(automatonCreationTime, TimeUnit.NANOSECONDS) + TimeUnit.MILLISECONDS.convert(logGenTime, TimeUnit.NANOSECONDS)));
+		//System.out.println();
 	}
 	
 	public static LocalDate createRandomDate(int startYear, int endYear) {
@@ -270,7 +291,7 @@ public class MonitoringViewController {
         return start + (int) Math.round(Math.random() * (end - start));
     }
 	
-	private void generateEventLog(int positiveTraces, int negativeTraces) {
+	private void generateEventLog(int positiveTraces, int negativeTraces, int violProbability) {
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile))) {
 			writer.write(logHeader);
@@ -284,7 +305,7 @@ public class MonitoringViewController {
 		}
 		
 		for (int i = 0; i < negativeTraces; i++) {
-			generateNegativeTrace(positiveTraces + i);
+			generateNegativeTrace(positiveTraces + i, violProbability);
 		}
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
@@ -336,7 +357,7 @@ public class MonitoringViewController {
 		}
 	}
 
-	private void generateNegativeTrace(int id) {
+	private void generateNegativeTrace(int id, int violProbability) {
 		
 		LocalDate startDate = createRandomDate(Year.now().getValue()-5, Year.now().getValue()-1);
 		Timestamp eventTimestamp = Timestamp.valueOf(startDate.atStartOfDay());
@@ -353,7 +374,7 @@ public class MonitoringViewController {
 		while (!isSinkState(currentState)) {
 			List<Transition> suitableTransitions = new ArrayList<Transition>();
 			for (State state : currentState) {
-				boolean allowNewViol = (int)(Math.random() * 100) < 5;
+				boolean allowNewViol = (int)(Math.random() * 100) < violProbability;
 				
 				if (!allowNewViol) {
 					for (Transition t : state.getOutput()) {

@@ -40,14 +40,14 @@ public class FileUtils {
 		return chosenFiles;
 	}
 
-	public static File showLogOpenDialog(Stage stage) {
+	public static File showLogOutputDialog(Stage stage) {
 		FileChooser fileChooser = new FileChooser();
 		if (previousDirectory != null && previousDirectory.exists()) {
 			fileChooser.setInitialDirectory(previousDirectory);
 		}
 
 		fileChooser.getExtensionFilters().add(eventlogExtensionFilter);
-		File chosenFile = fileChooser.showOpenDialog(stage);
+		File chosenFile = fileChooser.showSaveDialog(stage);
 
 		if (chosenFile != null) { // If true then the user just closed the dialog without choosing a file
 			previousDirectory = chosenFile.getParentFile();

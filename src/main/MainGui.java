@@ -1,6 +1,6 @@
 package main;
 
-import controller.MonitoringViewController;
+import controller.LogGenViewController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -20,16 +20,16 @@ public class MainGui extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		String fxmlPath = "fxml/MonitoringView.fxml";
+		String fxmlPath = "fxml/LogGenView.fxml";
 		FXMLLoader fxmlLoader = new FXMLLoader(MainGui.class.getClassLoader().getResource(fxmlPath));
 		Parent parent = fxmlLoader.load();
-		((MonitoringViewController)fxmlLoader.getController()).setStage(primaryStage);
+		((LogGenViewController)fxmlLoader.getController()).setStage(primaryStage);
 		scene = new Scene(parent);
 		scene.getStylesheets().add("css/main.css");
 		
 		primaryStage.setTitle("model-interplay-monitor");
 		primaryStage.setScene(scene);
-		//Setting minimum window size to 720p
+		//Setting minimum window size to 800*600px
 		primaryStage.setMinWidth(800);
 		primaryStage.setMinHeight(600);
 		primaryStage.setMaximized(true);
