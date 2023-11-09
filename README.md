@@ -5,7 +5,7 @@ Implementation of a multi-model log generator. Based on the multi-model monitor 
 
 ## Running the application
 
-The application is currently compiled as a single [runnable fatjar](https://github.com/antialman/model-interplay-interplay-code/releases/) (requires installing [Java 11 JDK](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)).
+The application is currently compiled as a single [runnable fatjar](https://github.com/antialman/model-loggen-code/releases/) (requires installing [Java 11 JDK](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)).
 
 It is possible to use either the graphical user interface or the command line interface.
 
