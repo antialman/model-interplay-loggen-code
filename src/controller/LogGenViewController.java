@@ -440,6 +440,22 @@ public class LogGenViewController {
 			activityName = activityString.substring(0, activityString.indexOf(" ["));
 			attributeName = activityString.substring(activityString.indexOf(" [")+2, activityString.indexOf("="));
 			attributeValue = activityString.substring(activityString.indexOf("=")+1, activityString.indexOf("]"));
+			if (attributeValue.contains(",")) { //This does not account for the allowed value range in the decl model and does not work well for floats
+				attributeValue = attributeValue.substring(1, attributeValue.length()-1);
+				String valueLb = attributeValue.split(",")[0];
+				String valueUb = attributeValue.split(",")[1];
+				if (valueLb.equals("-inf") && valueUb.equals("inf")) {
+					attributeValue = String.valueOf(createRandomIntBetween(-5, 5));
+				} else {
+					if (valueLb.equals("-inf")) { 
+						valueLb = String.valueOf(Integer.parseInt(valueUb) - 5);
+					}
+					if (valueUb.equals("inf")) {
+						valueUb = String.valueOf(Integer.parseInt(valueLb) + 5);
+					}
+					attributeValue = String.valueOf(createRandomIntBetween(Integer.parseInt(valueLb), Integer.parseInt(valueUb)));
+				}
+			}
 		}
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
