@@ -234,21 +234,12 @@ public class MainCmd {
 					}
 				}
 			}
-			
-			Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
-			
+
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
 			
-			String transitionLabel = null;
-			if (selectedTransition.isPositive()) {
-				transitionLabel = selectedTransition.getPositiveLabel();
-			} else if (selectedTransition.isNegative()) {
-				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
-				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
-				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
-			}
-
+			String transitionLabel = selectTransition(suitableTransitions);
+			
 			writeTransition(transitionLabel, eventTimestamp);
 			currentState = globalAutomaton.next(transitionLabel);
 		}
@@ -295,22 +286,14 @@ public class MainCmd {
 					}
 				}
 			}
-			
-			Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
-			
+
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
-			String transitionLabel = null;
-			if (selectedTransition.isPositive()) {
-				transitionLabel = selectedTransition.getPositiveLabel();
-			} else if (selectedTransition.isNegative()) {
-				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
-				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
-				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
-			}
-
+			
+			String transitionLabel = selectTransition(suitableTransitions);
+			
 			writeTransition(transitionLabel, eventTimestamp);
-			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
+			currentState = globalAutomaton.next(transitionLabel);
 		}
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
@@ -345,6 +328,20 @@ public class MainCmd {
 		}
 		return false;
 		
+	}
+	
+	private static String selectTransition(List<Transition> suitableTransitions) {
+		Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
+		
+		String transitionLabel = null;
+		if (selectedTransition.isPositive()) {
+			transitionLabel = selectedTransition.getPositiveLabel();
+		} else if (selectedTransition.isNegative()) {
+			List<String> candidatePropositions = new ArrayList<String>(allPropositions);
+			candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
+			transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
+		}
+		return transitionLabel;
 	}
 	
 	private static void writeTransition(String transitionLabel, Timestamp eventTimestamp) {

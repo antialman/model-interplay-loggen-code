@@ -355,20 +355,11 @@ public class LogGenViewController {
 					}
 				}
 			}
-			
-			Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
-			
+
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
 			
-			String transitionLabel = null;
-			if (selectedTransition.isPositive()) {
-				transitionLabel = selectedTransition.getPositiveLabel();
-			} else if (selectedTransition.isNegative()) {
-				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
-				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
-				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
-			}
+			String transitionLabel = selectTransition(suitableTransitions);
 			
 			writeTransition(transitionLabel, eventTimestamp);
 			currentState = globalAutomaton.next(transitionLabel);
@@ -416,20 +407,11 @@ public class LogGenViewController {
 					}
 				}
 			}
-			
-			Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
-			
+
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
 			
-			String transitionLabel = null;
-			if (selectedTransition.isPositive()) {
-				transitionLabel = selectedTransition.getPositiveLabel();
-			} else if (selectedTransition.isNegative()) {
-				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
-				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
-				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
-			}
+			String transitionLabel = selectTransition(suitableTransitions);
 			
 			writeTransition(transitionLabel, eventTimestamp);
 			currentState = globalAutomaton.next(transitionLabel);
@@ -457,6 +439,21 @@ public class LogGenViewController {
 		
 	}
 	
+	
+	private String selectTransition(List<Transition> suitableTransitions) {
+		Transition selectedTransition = suitableTransitions.get((int)(Math.random() * suitableTransitions.size()));
+		
+		String transitionLabel = null;
+		if (selectedTransition.isPositive()) {
+			transitionLabel = selectedTransition.getPositiveLabel();
+		} else if (selectedTransition.isNegative()) {
+			List<String> candidatePropositions = new ArrayList<String>(allPropositions);
+			candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
+			transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
+		}
+		return transitionLabel;
+	}
+	
 	private void writeTransition(String transitionLabel, Timestamp eventTimestamp) {
 		String activityString = propositionData.propositionToActivityString(transitionLabel, true);
 		
@@ -474,15 +471,15 @@ public class LogGenViewController {
 				String valueLb = attributeValue.split(",")[0];
 				String valueUb = attributeValue.split(",")[1];
 				if (valueLb.equals("-inf") && valueUb.equals("inf")) {
-					attributeValue = String.valueOf(createRandomIntBetween(-5, 5));
+					attributeValue = String.valueOf(createRandomIntBetween(-6, 6));
 				} else {
 					if (valueLb.equals("-inf")) { 
-						valueLb = String.valueOf(Integer.parseInt(valueUb) - 5);
+						valueLb = String.valueOf(Integer.parseInt(valueUb) - 6);
 					}
 					if (valueUb.equals("inf")) {
-						valueUb = String.valueOf(Integer.parseInt(valueLb) + 5);
+						valueUb = String.valueOf(Integer.parseInt(valueLb) + 6);
 					}
-					attributeValue = String.valueOf(createRandomIntBetween(Integer.parseInt(valueLb), Integer.parseInt(valueUb)));
+					attributeValue = String.valueOf(createRandomIntBetween(Integer.parseInt(valueLb)+1, Integer.parseInt(valueUb)-1));
 				}
 			}
 		}
