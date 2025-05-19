@@ -151,6 +151,10 @@ public class PropositionData {
 		return activityNameToActivity.get(activityName).getMatchingPropositionNames(activityCondition);
 	}
 
+	public AbstractAttribute<?> getAttribute(String attributeName) {
+		return attributeNameToAttribute.get(attributeName);
+	}
+	
 	public String getAttributeId(String attributeName) {
 		return attributeNameToAttribute.get(attributeName).getId();
 	}

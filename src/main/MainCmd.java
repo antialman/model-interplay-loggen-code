@@ -28,6 +28,9 @@ import org.processmining.plugins.declareminer.PossibleNodes;
 
 import model.AbstractModel;
 import proposition.PropositionData;
+import proposition.attribute.FloatAttribute;
+import proposition.attribute.IntegerAttribute;
+import proposition.attribute.StringAttribute;
 import utils.AutomatonUtils;
 import utils.CmdArgsUtil;
 import utils.LogUtils;
@@ -71,7 +74,9 @@ public class MainCmd {
 	private static String activityEnd = "\"/>\r\n" + 
 			"			<string key=\"lifecycle:transition\" value=\"complete\"/>\r\n";
 	
-	private static String attributeStart = "			<string key=\"";
+	private static String strAttributeStart = "			<string key=\"";
+	private static String intAttributeStart = "			<int key=\"";
+	private static String floatAttributeStart = "			<float key=\"";
 	private static String attributeValueStart = "\" value=\"";
 	private static String attributeEnd = "\"/>\r\n";
 	
@@ -377,7 +382,13 @@ public class MainCmd {
 			writer.write(activityName);
 			writer.write(activityEnd);
 			if (attributeName != null && attributeValue != null) {
-				writer.write(attributeStart);
+				if (propositionData.getAttribute(attributeName) instanceof StringAttribute) {
+					writer.write(strAttributeStart);
+				} else if (propositionData.getAttribute(attributeName) instanceof IntegerAttribute) {
+					writer.write(intAttributeStart);
+				} else if (propositionData.getAttribute(attributeName) instanceof FloatAttribute) {
+					writer.write(floatAttributeStart);
+				}
 				writer.write(attributeName);
 				writer.write(attributeValueStart);
 				writer.write(attributeValue);

@@ -47,6 +47,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import model.AbstractModel;
 import proposition.PropositionData;
+import proposition.attribute.FloatAttribute;
+import proposition.attribute.IntegerAttribute;
+import proposition.attribute.StringAttribute;
 import task.MonitoringTask;
 import utils.AutomatonUtils;
 import utils.FileUtils;
@@ -142,7 +145,9 @@ public class LogGenViewController {
 	String activityEnd = "\"/>\r\n" + 
 			"			<string key=\"lifecycle:transition\" value=\"complete\"/>\r\n";
 	
-	String attributeStart = "			<string key=\"";
+	String strAttributeStart = "			<string key=\"";
+	String intAttributeStart = "			<int key=\"";
+	String floatAttributeStart = "			<float key=\"";
 	String attributeValueStart = "\" value=\"";
 	String attributeEnd = "\"/>\r\n";
 	
@@ -487,7 +492,13 @@ public class LogGenViewController {
 			writer.write(activityName);
 			writer.write(activityEnd);
 			if (attributeName != null && attributeValue != null) {
-				writer.write(attributeStart);
+				if (propositionData.getAttribute(attributeName) instanceof StringAttribute) {
+					writer.write(strAttributeStart);
+				} else if (propositionData.getAttribute(attributeName) instanceof IntegerAttribute) {
+					writer.write(intAttributeStart);
+				} else if (propositionData.getAttribute(attributeName) instanceof FloatAttribute) {
+					writer.write(floatAttributeStart);
+				}
 				writer.write(attributeName);
 				writer.write(attributeValueStart);
 				writer.write(attributeValue);
