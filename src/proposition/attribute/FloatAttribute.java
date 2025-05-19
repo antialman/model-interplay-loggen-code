@@ -31,6 +31,10 @@ public class FloatAttribute extends AbstractAttribute<Float> {
 	public Set<String> getMatchingPropositionNames(String atomicCondition) {
 		Set<String> propositionNames = new TreeSet<String>();
 		String[] splitEquality = atomicCondition.split("<=|!=|>=|<|=|>");
+		
+		for (int i = 0; i < splitEquality.length; i++) {
+			splitEquality[i] = splitEquality[i].strip();
+		}
 
 		if (!splitEquality[0].equals(getName()) ) {
 			//Using px for this case might not be the best choice, but if we reach here then something is already wrong
