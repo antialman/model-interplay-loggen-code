@@ -1,6 +1,7 @@
 package proposition;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -133,6 +134,14 @@ public class PropositionData {
 		//Adds constant to the attribute
 		stringAttribute.addConstant(constant);
 	}
+	
+	public Set<String> getAllPropositions() {
+		Set<String> allAllPropositions = new HashSet<String>();
+		for (String activityName : activityNameToActivity.keySet()) {
+			allAllPropositions.addAll(activityNameToActivity.get(activityName).getAllPropositionNames());
+		}
+		return allAllPropositions;
+	} 
 
 	public Set<String> getAllActivityPropositions(String activityName) {
 		return activityNameToActivity.get(activityName).getAllPropositionNames();

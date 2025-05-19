@@ -10,9 +10,12 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -86,6 +89,7 @@ public class LogGenViewController {
 
 	//Data structures
 	PropositionData propositionData = new PropositionData();
+	Set<String> allPropositions;
 	ExecutableAutomaton globalAutomaton;
 	Map<State, Map<AbstractModel, MonitoringState>> globalAutomatonColours;
 	Map<State, Integer> costCurrMap;
@@ -294,6 +298,8 @@ public class LogGenViewController {
 	
 	private void generateEventLog(int positiveTraces, int negativeTraces, int violProbability) {
 		
+		allPropositions = propositionData.getAllPropositions();
+		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile))) {
 			writer.write(logHeader);
 		} catch (IOException e) {
@@ -339,7 +345,7 @@ public class LogGenViewController {
 			List<Transition> suitableTransitions = new ArrayList<Transition>();
 			for (State state : currentState) {
 				for (Transition t : state.getOutput()) {
-					if (t.isPositive() && costBestMap.get(t.getTarget()) == 0) {
+					if ((t.isPositive() || (t.isNegative() && t.getSource() != t.getTarget())) && costBestMap.get(t.getTarget()) == 0) {
 						suitableTransitions.add(t);
 					}
 				}
@@ -350,8 +356,17 @@ public class LogGenViewController {
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
 			
-			writeTransition(selectedTransition, eventTimestamp);
-			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
+			String transitionLabel = null;
+			if (selectedTransition.isPositive()) {
+				transitionLabel = selectedTransition.getPositiveLabel();
+			} else if (selectedTransition.isNegative()) {
+				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
+				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
+				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
+			}
+			
+			writeTransition(transitionLabel, eventTimestamp);
+			currentState = globalAutomaton.next(transitionLabel);
 		}
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
@@ -382,7 +397,7 @@ public class LogGenViewController {
 				
 				if (!allowNewViol) {
 					for (Transition t : state.getOutput()) {
-						if (t.isPositive() && costBestMap.get(t.getTarget()) == costBestMap.get(t.getSource())) {
+						if ((t.isPositive() || (t.isNegative() && t.getSource() != t.getTarget())) && costBestMap.get(t.getTarget()) == costBestMap.get(t.getSource())) {
 							suitableTransitions.add(t);
 						}
 					}
@@ -390,7 +405,7 @@ public class LogGenViewController {
 				
 				if (allowNewViol || suitableTransitions.isEmpty()) {
 					for (Transition t : state.getOutput()) {
-						if (t.isPositive()) {
+						if (!t.isAll()) {
 							suitableTransitions.add(t);
 						}
 					}
@@ -402,8 +417,17 @@ public class LogGenViewController {
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
 			
-			writeTransition(selectedTransition, eventTimestamp);
-			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
+			String transitionLabel = null;
+			if (selectedTransition.isPositive()) {
+				transitionLabel = selectedTransition.getPositiveLabel();
+			} else if (selectedTransition.isNegative()) {
+				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
+				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
+				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
+			}
+			
+			writeTransition(transitionLabel, eventTimestamp);
+			currentState = globalAutomaton.next(transitionLabel);
 		}
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
@@ -428,8 +452,8 @@ public class LogGenViewController {
 		
 	}
 	
-	private void writeTransition(Transition selectedTransition, Timestamp eventTimestamp) {
-		String activityString = propositionData.propositionToActivityString(selectedTransition.getPositiveLabel(), true);
+	private void writeTransition(String transitionLabel, Timestamp eventTimestamp) {
+		String activityString = propositionData.propositionToActivityString(transitionLabel, true);
 		
 		String activityName;
 		String attributeName = null;
