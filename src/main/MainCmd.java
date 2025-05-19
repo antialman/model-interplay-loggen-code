@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
@@ -83,6 +84,7 @@ public class MainCmd {
 	private static ExecutableAutomaton globalAutomaton;
 	private static Map<State, Integer> costBestMap;
 	private static PropositionData propositionData = new PropositionData();
+	static Set<String> allPropositions;
 	
 	
 	
@@ -177,6 +179,7 @@ public class MainCmd {
 	
 	
 	private static void generateEventLog(int positiveTraces, int negativeTraces, int violProbability) {
+		allPropositions = propositionData.getAllPropositions();
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile))) {
 			writer.write(logHeader);
@@ -221,7 +224,7 @@ public class MainCmd {
 			List<Transition> suitableTransitions = new ArrayList<Transition>();
 			for (State state : currentState) {
 				for (Transition t : state.getOutput()) {
-					if (t.isPositive() && costBestMap.get(t.getTarget()) == 0) {
+					if ((t.isPositive() || (t.isNegative() && t.getSource() != t.getTarget())) && costBestMap.get(t.getTarget()) == 0) {
 						suitableTransitions.add(t);
 					}
 				}
@@ -232,8 +235,17 @@ public class MainCmd {
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
 			
-			writeTransition(selectedTransition, eventTimestamp);
-			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
+			String transitionLabel = null;
+			if (selectedTransition.isPositive()) {
+				transitionLabel = selectedTransition.getPositiveLabel();
+			} else if (selectedTransition.isNegative()) {
+				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
+				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
+				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
+			}
+
+			writeTransition(transitionLabel, eventTimestamp);
+			currentState = globalAutomaton.next(transitionLabel);
 		}
 		
 		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile), StandardOpenOption.APPEND)) {
@@ -264,7 +276,7 @@ public class MainCmd {
 				
 				if (!allowNewViol) {
 					for (Transition t : state.getOutput()) {
-						if (t.isPositive() && costBestMap.get(t.getTarget()) == costBestMap.get(t.getSource())) {
+						if ((t.isPositive() || (t.isNegative() && t.getSource() != t.getTarget())) && costBestMap.get(t.getTarget()) == costBestMap.get(t.getSource())) {
 							suitableTransitions.add(t);
 						}
 					}
@@ -272,7 +284,7 @@ public class MainCmd {
 				
 				if (allowNewViol || suitableTransitions.isEmpty()) {
 					for (Transition t : state.getOutput()) {
-						if (t.isPositive()) {
+						if ((t.isPositive() || (t.isNegative() && t.getSource() != t.getTarget()))) {
 							suitableTransitions.add(t);
 						}
 					}
@@ -283,8 +295,16 @@ public class MainCmd {
 			
 			int duration = ((14 * createRandomIntBetween(30, 60)) + 59) * 10000;
 			eventTimestamp.setTime(eventTimestamp.getTime()+duration);
-			
-			writeTransition(selectedTransition, eventTimestamp);
+			String transitionLabel = null;
+			if (selectedTransition.isPositive()) {
+				transitionLabel = selectedTransition.getPositiveLabel();
+			} else if (selectedTransition.isNegative()) {
+				List<String> candidatePropositions = new ArrayList<String>(allPropositions);
+				candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
+				transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
+			}
+
+			writeTransition(transitionLabel, eventTimestamp);
 			currentState = globalAutomaton.next(selectedTransition.getPositiveLabel());
 		}
 		
@@ -322,8 +342,8 @@ public class MainCmd {
 		
 	}
 	
-	private static void writeTransition(Transition selectedTransition, Timestamp eventTimestamp) {
-		String activityString = propositionData.propositionToActivityString(selectedTransition.getPositiveLabel(), true);
+	private static void writeTransition(String transitionLabel, Timestamp eventTimestamp) {
+		String activityString = propositionData.propositionToActivityString(transitionLabel, true);
 		
 		String activityName;
 		String attributeName = null;

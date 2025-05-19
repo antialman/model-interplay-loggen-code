@@ -405,7 +405,7 @@ public class LogGenViewController {
 				
 				if (allowNewViol || suitableTransitions.isEmpty()) {
 					for (Transition t : state.getOutput()) {
-						if (!t.isAll()) {
+						if ((t.isPositive() || (t.isNegative() && t.getSource() != t.getTarget()))) {
 							suitableTransitions.add(t);
 						}
 					}
