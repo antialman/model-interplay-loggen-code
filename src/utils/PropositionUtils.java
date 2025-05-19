@@ -26,12 +26,13 @@ public class PropositionUtils {
 				for (int i = 0; i < atomicConditions.length; i++) {
 					//Detecting attribute name, type and the constant used in the atomic condition
 					String[] splitCondition = atomicConditions[i].split("<=|!=|>=|<|=|>| is not | is | not in | in ");
-					String attributeName = splitCondition[0];
+					String attributeName = splitCondition[0].strip();
 					if (attributeName.startsWith("A.")) {
 						attributeName = attributeName.substring(2);
 					}
+					System.out.println(declareModel.getAttributeTypeMap().containsKey(attributeName));
 					AttributeType attributeType = declareModel.getAttributeTypeMap().get(attributeName);
-					String attributeConstant = splitCondition[1].stripTrailing();
+					String attributeConstant = splitCondition[1].strip();
 					updatePropositionData(activityName, attributeName, attributeType, attributeConstant, propositionData);
 				}
 			} 
@@ -41,12 +42,12 @@ public class PropositionUtils {
 				for (int i = 0; i < atomicConditions.length; i++) {
 					//Detecting attribute name, type and the constant used in the atomic condition
 					String[] splitCondition = atomicConditions[i].split("<=|!=|>=|<|=|>| is not | is | not in | in ");
-					String attributeName = splitCondition[0];
+					String attributeName = splitCondition[0].strip();
 					if (attributeName.startsWith("T.")) {
 						attributeName = attributeName.substring(2);
 					}
 					AttributeType attributeType = declareModel.getAttributeTypeMap().get(attributeName);
-					String attributeConstant = splitCondition[1].stripTrailing();
+					String attributeConstant = splitCondition[1].strip();
 					updatePropositionData(activityName, attributeName, attributeType, attributeConstant, propositionData);
 				}
 			}
@@ -67,7 +68,7 @@ public class PropositionUtils {
 						String activityName = splitCondition[0].substring(0, dotIndex);
 						String attributeName = splitCondition[0].substring(dotIndex+1).strip();
 						AttributeType attributeType = ltlModel.getAttributeTypeMap().get(attributeName);
-						String attributeConstant = splitCondition[1].stripTrailing();
+						String attributeConstant = splitCondition[1].strip();
 						
 						//Updating proposition data
 						updatePropositionData(activityName, attributeName, attributeType, attributeConstant, propositionData);
@@ -92,7 +93,7 @@ public class PropositionUtils {
 					String activityName = transition.getLabel();
 					String attributeName = splitCondition[0];
 					AttributeType attributeType = dpnModel.getAttributeTypeMap().get(attributeName);
-					String attributeConstant = splitCondition[1].stripTrailing();
+					String attributeConstant = splitCondition[1].strip();
 
 					//Updating proposition data
 					updatePropositionData(activityName, attributeName, attributeType, attributeConstant, propositionData);
