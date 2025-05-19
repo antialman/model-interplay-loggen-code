@@ -451,6 +451,21 @@ public class LogGenViewController {
 			candidatePropositions.removeAll(selectedTransition.getNegativeLabels());
 			transitionLabel = candidatePropositions.get((int)(Math.random() * candidatePropositions.size()));
 		}
+		String activityString = propositionData.propositionToActivityString(transitionLabel, true);
+		
+		if (activityString.indexOf(" [") != -1) {
+			String attributeName = activityString.substring(activityString.indexOf(" [")+2, activityString.indexOf("="));
+			if (propositionData.getAttribute(attributeName) instanceof IntegerAttribute) { //Integer constants c1 and c2, such that c1-c2=1, result in intervals (c1,c2) which contain no values  
+				String attributeValue = activityString.substring(activityString.indexOf("=")+1, activityString.indexOf("]"));
+				if (attributeValue.contains(",") && !attributeValue.contains("inf")) {
+					attributeValue = attributeValue.substring(1, attributeValue.length()-1);
+					if (Integer.parseInt(attributeValue.split(",")[1]) - Integer.parseInt(attributeValue.split(",")[0]) <= 1) {
+						suitableTransitions.remove(selectedTransition);
+						transitionLabel = selectTransition(suitableTransitions);
+					}
+				}
+			}
+		}
 		return transitionLabel;
 	}
 	
@@ -466,7 +481,7 @@ public class LogGenViewController {
 			activityName = activityString.substring(0, activityString.indexOf(" ["));
 			attributeName = activityString.substring(activityString.indexOf(" [")+2, activityString.indexOf("="));
 			attributeValue = activityString.substring(activityString.indexOf("=")+1, activityString.indexOf("]"));
-			if (attributeValue.contains(",")) { //This does not account for the allowed value range in the decl model and does not work well for floats
+			if (attributeValue.contains(",") && propositionData.getAttribute(attributeName) instanceof IntegerAttribute) { //This does not account for the allowed value range in the decl model
 				attributeValue = attributeValue.substring(1, attributeValue.length()-1);
 				String valueLb = attributeValue.split(",")[0];
 				String valueUb = attributeValue.split(",")[1];
